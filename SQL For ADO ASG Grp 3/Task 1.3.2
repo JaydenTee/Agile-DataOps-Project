@@ -1,0 +1,17 @@
+-- Task 3.2 Setting up stages and file formats for Contoso files
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+CREATE OR REPLACE FILE FORMAT contoso_file_format
+  TYPE = 'CSV'
+  FIELD_DELIMITER = ','           
+  SKIP_HEADER = 1                 
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"' 
+  NULL_IF = ('NULL', 'null', '')  
+  EMPTY_FIELD_AS_NULL = TRUE;     
+
+  CREATE STAGE contoso_stage
+  FILE_FORMAT = contoso_file_format;
+
+SHOW STAGES LIKE 'contoso_stage';
+LIST @contoso_stage;

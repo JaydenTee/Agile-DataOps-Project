@@ -1,0 +1,87 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 2.3.1: Create Initial View for Store Sales
+CREATE OR REPLACE VIEW VIEW_MASTER_SALES AS
+SELECT 
+    -- IDs
+    f.SalesKey,
+    f.DateKey,
+    f.StoreKey,
+    f.ProductKey,
+    
+    -- Metrics
+    f.SalesQuantity,
+    f.UnitPrice,
+    
+    -- Dimensions
+    s.StoreName,
+    g.RegionCountryName,
+    p.ProductName,
+    p.BrandName,
+    d.CalendarYear,
+    
+    -- Employee (Store Manager)
+    (emp.FirstName || ' ' || emp.LastName) AS StoreManagerName
+
+FROM RAW_CONTOSO.RAW_FACTSALES f
+
+-- Join to Main Dimensions
+LEFT JOIN RAW_CONTOSO.RAW_DIMSTORE s 
+    ON f.StoreKey = s.StoreKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCT p 
+    ON f.ProductKey = p.ProductKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMDATE d 
+    ON f.DateKey = d.DateKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMCHANNEL c 
+    ON f.channelKey = c.channelKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPROMOTION pro 
+    ON f.PromotionKey = pro.PromotionKey
+
+-- Join to Snowflaked Dimensions (Linked via other tables)
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g 
+    ON s.GeographyKey = g.GeographyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMEMPLOYEE emp 
+    ON s.StoreManager = emp.EmployeeKey;
+
+
+
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 2.3.1: Create Initial View for Online Sales
+CREATE OR REPLACE VIEW VIEW_MASTER_ONLINESALES AS
+SELECT 
+    -- IDs
+    f.OnlineSalesKey,
+    f.DateKey,
+    f.CustomerKey,
+    f.ProductKey,
+    
+    -- Metrics
+    f.SalesQuantity,
+    f.UnitPrice,
+    
+    -- Dimensions
+    (cust.FirstName || ' ' || cust.LastName) AS CustomerName,
+    g.RegionCountryName,
+    p.ProductName,
+    p.BrandName,
+    d.CalendarYear,
+    cur.CurrencyName
+
+FROM RAW_CONTOSO.RAW_FACT_ONLINESALES f
+
+-- Join to Main Dimensions
+LEFT JOIN RAW_CONTOSO.RAW_DIMCUSTOMER cust 
+    ON f.CustomerKey = cust.CustomerKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCT p 
+    ON f.ProductKey = p.ProductKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMDATE d 
+    ON f.DateKey = d.DateKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMCURRENCY cur 
+    ON f.CurrencyKey = cur.CurrencyKey
+
+-- Join to Snowflaked Dimensions
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g 
+    ON cust.GeographyKey = g.GeographyKey;

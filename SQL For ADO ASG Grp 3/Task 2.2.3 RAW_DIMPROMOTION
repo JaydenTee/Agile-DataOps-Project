@@ -1,0 +1,54 @@
+-- Context
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- Optional: confirm file exists
+LIST @CONTOSO_STAGE;
+
+-- Preview staged data
+SELECT
+  $1 AS PromotionKey,
+  $2 AS PromotionName,
+  $3 AS DiscountPercent,
+  $4 AS PromotionType,
+  $5 AS PromotionCategory
+FROM @CONTOSO_STAGE/DimPromotion.csv
+LIMIT 10;
+
+-- Create RAW table (matches CSV)
+CREATE OR REPLACE TABLE RAW_DIMPROMOTION (
+  PromotionKey        INTEGER,
+  PromotionName       VARCHAR,
+  DiscountPercent     FLOAT,
+  PromotionType       VARCHAR,
+  PromotionCategory   VARCHAR
+);
+
+-- Load data
+COPY INTO RAW_DIMPROMOTION
+FROM @CONTOSO_STAGE/DimPromotion.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- Validation: row count
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMPROMOTION;
+
+-- Validation: key uniqueness
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT PromotionKey) AS distinct_keys
+FROM RAW_DIMPROMOTION;
+
+-- Validation: null / blank checks
+SELECT
+  SUM(CASE WHEN PromotionKey IS NULL THEN 1 ELSE 0 END) AS null_key_rows,
+  SUM(CASE WHEN PromotionName IS NULL OR TRIM(PromotionName) = '' THEN 1 ELSE 0 END) AS blank_name_rows
+FROM RAW_DIMPROMOTION;
+
+-- Sample check
+SELECT *
+FROM RAW_DIMPROMOTION
+ORDER BY PromotionKey
+LIMIT 20;

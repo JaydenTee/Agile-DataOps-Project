@@ -1,0 +1,37 @@
+-- 1. Check for Products sold that don't exist in DimProduct Offline
+SELECT 
+    'Orphan Product Keys Offline' AS Issue_Type, 
+    COUNT(*) AS Fail_Count,
+FROM RAW_FACTSALES f
+LEFT JOIN RAW_DIMPRODUCT p ON f.ProductKey = p.ProductKey
+WHERE p.ProductKey IS NULL
+
+UNION ALL
+
+-- 2. Check for Products sold that don't exist in DimProduct Online
+SELECT 
+    'Orphan Product Keys Online' AS Issue_Type, 
+    COUNT(*) AS Fail_Count,
+FROM RAW_FACT_ONLINESALES f
+LEFT JOIN RAW_DIMPRODUCT p ON f.ProductKey = p.ProductKey
+WHERE p.ProductKey IS NULL
+
+UNION ALL
+
+-- 3. Check for Stores that don't exist in DimStore
+SELECT 
+    'Orphan Store Keys' AS Issue_Type, 
+    COUNT(*) AS Fail_Count,
+FROM RAW_FACTSALES f
+LEFT JOIN RAW_DIMSTORE s ON f.StoreKey = s.StoreKey
+WHERE s.StoreKey IS NULL
+
+UNION ALL
+
+-- 4. Check for Dates that don't exist in DimDate
+SELECT 
+    'Orphan Date Keys' AS Issue_Type, 
+    COUNT(*) AS Fail_Count,
+FROM RAW_FACTSALES f
+LEFT JOIN RAW_DIMDATE d ON f.DateKey = d.Datekey 
+WHERE d.Datekey IS NULL;

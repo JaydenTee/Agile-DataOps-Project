@@ -1,0 +1,83 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 2.3.4: Final Master View with Revenue Calculation
+CREATE OR REPLACE VIEW VIEW_MASTER_SALES AS
+SELECT 
+    f.SalesKey,
+    f.DateKey,
+    
+    -- [NEW] TASK 2.3.4: THE CALCULATION
+    f.SalesQuantity,
+    f.UnitPrice,
+    (f.SalesQuantity * f.UnitPrice) AS TotalRevenue,   -- Quantity * Price
+    
+    -- Business Friendly Dimensions
+    s.StoreName                   AS Store,
+    s.StoreType,
+    g.RegionCountryName           AS Country,
+    g.ContinentName               AS Continent,
+    
+    p.ProductName                 AS Product,
+    p.BrandName                   AS Brand,
+    cat.ProductCategoryName       AS Category,
+    sub.ProductSubcategoryName    AS SubCategory,
+    
+    d.CalendarYear                AS Year,
+    
+    (emp.FirstName || ' ' || emp.LastName) AS StoreManagerName
+
+FROM RAW_CONTOSO.RAW_FACTSALES f
+
+-- Inner Joins (Data Quality)
+INNER JOIN RAW_CONTOSO.RAW_DIMSTORE s ON f.StoreKey = s.StoreKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPRODUCT p ON f.ProductKey = p.ProductKey
+INNER JOIN RAW_CONTOSO.RAW_DIMDATE d ON f.DateKey = d.DateKey
+INNER JOIN RAW_CONTOSO.RAW_DIMCHANNEL c ON f.channelKey = c.channelKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPROMOTION pro ON f.PromotionKey = pro.PromotionKey
+
+-- Snowflaked Joins
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g ON s.GeographyKey = g.GeographyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMEMPLOYEE emp ON s.StoreManager = emp.EmployeeKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTSUBCATEGORY sub ON p.ProductSubcategoryKey = sub.ProductSubcategoryKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTCATEGORY cat ON sub.ProductCategoryKey = cat.ProductCategoryKey;
+
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 2.3.4: Final Master View with Revenue Calculation
+CREATE OR REPLACE VIEW VIEW_MASTER_ONLINESALES AS
+SELECT 
+    f.OnlineSalesKey,
+    f.DateKey,
+    
+    -- [NEW] TASK 2.3.4: THE CALCULATION
+    f.SalesQuantity,
+    f.UnitPrice,
+    (f.SalesQuantity * f.UnitPrice) AS TotalRevenue,   -- Quantity * Price
+    
+    -- Business Friendly Dimensions
+    (cust.FirstName || ' ' || cust.LastName) AS CustomerName,
+    g.RegionCountryName           AS Country,
+    g.ContinentName               AS Continent,
+    
+    p.ProductName                 AS Product,
+    p.BrandName                   AS Brand,
+    cat.ProductCategoryName       AS Category,
+    sub.ProductSubcategoryName    AS SubCategory,
+    
+    d.CalendarYear                AS Year,
+    cur.CurrencyName
+
+FROM RAW_CONTOSO.RAW_FACT_ONLINESALES f
+
+-- Inner Joins (Data Quality)
+INNER JOIN RAW_CONTOSO.RAW_DIMCUSTOMER cust ON f.CustomerKey = cust.CustomerKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPRODUCT p ON f.ProductKey = p.ProductKey
+INNER JOIN RAW_CONTOSO.RAW_DIMDATE d ON f.DateKey = d.DateKey
+INNER JOIN RAW_CONTOSO.RAW_DIMCURRENCY cur ON f.CurrencyKey = cur.CurrencyKey
+
+-- Snowflaked Joins
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g ON cust.GeographyKey = g.GeographyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTSUBCATEGORY sub ON p.ProductSubcategoryKey = sub.ProductSubcategoryKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTCATEGORY cat ON sub.ProductCategoryKey = cat.ProductCategoryKey;

@@ -1,0 +1,34 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- 1. Validate Store Sales (Should match 'SalesKey')
+WITH Validation AS (
+    SELECT SalesKey, COUNT(*) 
+    FROM VIEW_CLEAN_SALES_DATA  -- <--- Checking the Clean View
+    GROUP BY SalesKey
+    HAVING COUNT(*) > 1
+)
+SELECT 
+    'VIEW_CLEAN_SALES_DATA' AS Checked_View,
+    'SalesKey' AS Criteria,
+    (SELECT COUNT(*) FROM Validation) AS Duplicate_Count,
+    CASE 
+        WHEN (SELECT COUNT(*) FROM Validation) = 0 THEN 'PASSED (0 Duplicates)'
+        ELSE 'FAILED'
+    END AS Status;
+
+-- 2. Validate Online Sales (Should match 'OnlineSalesKey')
+WITH Validation AS (
+    SELECT OnlineSalesKey, COUNT(*) 
+    FROM VIEW_CLEAN_ONLINESALES_DATA -- <--- Checking the Clean View
+    GROUP BY OnlineSalesKey
+    HAVING COUNT(*) > 1
+)
+SELECT 
+    'VIEW_CLEAN_ONLINESALES_DATA' AS Checked_View,
+    'OnlineSalesKey' AS Criteria,
+    (SELECT COUNT(*) FROM Validation) AS Duplicate_Count,
+    CASE 
+        WHEN (SELECT COUNT(*) FROM Validation) = 0 THEN 'PASSED (0 Duplicates)'
+        ELSE 'FAILED'
+    END AS Status;

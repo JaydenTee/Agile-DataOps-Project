@@ -1,0 +1,75 @@
+-- Context
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- (Optional) Confirm the file exists in the stage
+LIST @CONTOSO_STAGE;
+
+-- (Optional) Preview staged data
+-- Note: Your screenshot shows columns:
+-- ProductSubcategoryKey, ProductSubcategoryName, ProductCategoryKey
+SELECT
+  $1 AS ProductSubcategoryKey,
+  $2 AS ProductSubcategoryName,
+  $3 AS ProductCategoryKey
+FROM @CONTOSO_STAGE/DimProductSubcategory.csv
+LIMIT 10;
+
+-- Create RAW table (matches your CSV headers)
+CREATE OR REPLACE TABLE RAW_DIMPRODUCTSUBCATEGORY (
+  ProductSubcategoryKey    INTEGER,
+  ProductSubcategoryName   VARCHAR,
+  ProductCategoryKey       INTEGER
+);
+
+-- Load
+COPY INTO RAW_DIMPRODUCTSUBCATEGORY
+FROM @CONTOSO_STAGE/DimProductSubcategory.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- Validate: row count
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMPRODUCTSUBCATEGORY;
+
+-- Validate: key uniqueness for subcategory key
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT ProductSubcategoryKey) AS distinct_keys
+FROM RAW_DIMPRODUCTSUBCATEGORY;
+
+-- Validate: quick sample
+SELECT *
+FROM RAW_DIMPRODUCTSUBCATEGORY
+ORDER BY ProductSubcategoryKey
+LIMIT 30;
+
+-- Validate: missing/blank checks
+SELECT
+  SUM(CASE WHEN ProductSubcategoryKey IS NULL THEN 1 ELSE 0 END) AS null_subcat_key_rows,
+  SUM(CASE WHEN ProductCategoryKey IS NULL THEN 1 ELSE 0 END) AS null_cat_key_rows,
+  SUM(CASE WHEN ProductSubcategoryName IS NULL OR TRIM(ProductSubcategoryName) = '' THEN 1 ELSE 0 END) AS blank_name_rows
+FROM RAW_DIMPRODUCTSUBCATEGORY;
+
+-- Relationship sanity check: orphan subcategories (CategoryKey in subcat not found in category)
+SELECT
+  s.ProductCategoryKey,
+  COUNT(*) AS orphan_subcategory_rows
+FROM RAW_DIMPRODUCTSUBCATEGORY s
+LEFT JOIN RAW_DIMPRODUCTCATEGORY c
+  ON s.ProductCategoryKey = c.ProductCategoryKey
+WHERE c.ProductCategoryKey IS NULL
+GROUP BY s.ProductCategoryKey
+ORDER BY orphan_subcategory_rows DESC;
+
+-- Relationship sanity check: count subcategories per category (useful profiling evidence)
+SELECT
+  c.ProductCategoryKey,
+  c.ProductCategoryName,
+  COUNT(s.ProductSubcategoryKey) AS subcategory_count
+FROM RAW_DIMPRODUCTCATEGORY c
+LEFT JOIN RAW_DIMPRODUCTSUBCATEGORY s
+  ON c.ProductCategoryKey = s.ProductCategoryKey
+GROUP BY c.ProductCategoryKey, c.ProductCategoryName
+ORDER BY c.ProductCategoryKey;

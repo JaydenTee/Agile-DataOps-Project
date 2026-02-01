@@ -1,0 +1,44 @@
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+SELECT
+  $1, $2, $3, $4
+FROM @CONTOSO_STAGE/DimStore.csv
+LIMIT 10;
+
+CREATE OR REPLACE TABLE RAW_DIMSTORE (
+  StoreKey         INTEGER,
+  GeographyKey      INTEGER,
+  StoreManager      INTEGER,
+  StoreType         VARCHAR,
+  StoreName         VARCHAR,
+  Status            VARCHAR,
+  OpenDate          DATE,
+  CloseDate         DATE,
+  EntityKey         INTEGER,
+  StorePhone        VARCHAR,
+  StoreFax          VARCHAR,
+  CloseReason       VARCHAR,
+  EmployeeCount     INTEGER,
+  SellingAreaSize   INTEGER,
+  LastRemodelDate   TIMESTAMP_NTZ,
+  EmployeeKey       INTEGER
+);
+
+COPY INTO RAW_DIMSTORE
+FROM @CONTOSO_STAGE/DimStore.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+---
+SELECT COUNT(*) FROM RAW_DIMSTORE;
+
+---
+
+SELECT COUNT(*) AS total_rows,
+       COUNT(DISTINCT StoreKey) AS distinct_keys
+FROM RAW_DIMSTORE;
+
+---- 
+SELECT * FROM RAW_DIMSTORE LIMIT 10;

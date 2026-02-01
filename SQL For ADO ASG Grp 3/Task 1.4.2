@@ -1,0 +1,23 @@
+-- Task 4.2 Profile Contoso DimCustomer
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+
+SELECT 
+    COUNT(*) AS total_rows, 
+    
+    COUNT(DISTINCT CustomerKey) AS unique_customer_keys,
+    
+    MIN(BirthDate) AS oldest_customer_birth, 
+    MAX(BirthDate) AS youngest_customer_birth,
+    
+    COUNT(*) - COUNT(CustomerKey) AS null_CustomerKey,
+    COUNT(*) - COUNT(GeographyKey) AS null_GeographyKey,
+    COUNT(*) - COUNT(YearlyIncome) AS null_YearlyIncome,
+    
+    MIN(YearlyIncome) AS min_income,
+    MAX(YearlyIncome) AS max_income
+FROM CONTOSO_DB.RAW_CONTOSO.RAW_DIMCUSTOMER;

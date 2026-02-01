@@ -1,0 +1,23 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+SELECT TOP 100
+    s.StoreName AS Original_Value,
+
+    CASE 
+        WHEN TRIM(s.StoreName) = '' THEN NULL
+        WHEN LOWER(TRIM(s.StoreName)) IN ('n/a', 'unknown', 'null', '0') THEN NULL
+        
+        ELSE TRIM(s.StoreName)
+    END AS Cleaned_Value,
+
+    CASE 
+        WHEN TRIM(s.StoreName) = '' THEN 'Empty String Rule'
+        WHEN LOWER(TRIM(s.StoreName)) IN ('n/a', 'unknown', 'null', '0') THEN 'Placeholder Rule'
+        ELSE 'Valid Data'
+    END AS Rule_Applied
+
+FROM RAW_CONTOSO.RAW_DIMSTORE s
+
+WHERE s.StoreName IN ('', ' ', 'N/A', '0', 'Unknown') 
+   OR s.Status IN ('N/A', '0');

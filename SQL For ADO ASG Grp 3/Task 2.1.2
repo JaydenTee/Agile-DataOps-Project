@@ -1,0 +1,40 @@
+USE SCHEMA RAW_CONTOSO;
+
+CREATE OR REPLACE TABLE RAW_FACT_ONLINESALES (
+    -- The Keys
+    OnlineSalesKey INT,
+    DateKey DATETIME,
+    StoreKey INT,
+    ProductKey INT,
+    PromotionKey INT,
+    CurrencyKey INT,
+    CustomerKey INT,
+    
+    -- The Order Details
+    SalesOrderNumber VARCHAR(50),
+    SalesOrderLineNumber INT,
+    
+    -- The Metrics (Sales, Returns, Discounts, Costs)
+    SalesQuantity INT,
+    SalesAmount DECIMAL(10,2),
+    ReturnQuantity INT,
+    ReturnAmount DECIMAL(10,2),
+    DiscountQuantity INT,
+    DiscountAmount DECIMAL(10,2),
+    TotalCost DECIMAL(10,2),
+    UnitCost DECIMAL(10,2),
+    UnitPrice DECIMAL(10,2)
+);
+
+COPY INTO RAW_FACT_ONLINESALES
+FROM @CONTOSO_STAGE
+PATTERN = '.*FactOnlineSales_.*.csv'
+FILE_FORMAT = (
+    TYPE = 'CSV',
+    FIELD_DELIMITER = ',',
+    SKIP_HEADER = 1,               
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"',
+    NULL_IF = ('NULL', 'null', ''),
+    ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
+)
+ON_ERROR = 'CONTINUE';           

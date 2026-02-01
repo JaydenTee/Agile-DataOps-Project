@@ -1,0 +1,15 @@
+-- 1. Create the Task (Schedule: 0th Minute, 0th Hour (Midnight) in Singapore Time)
+CREATE OR REPLACE TASK LOAD_FACTSALES_DAILY_TASK
+  WAREHOUSE = 'CHIPMUNK_WH' 
+  SCHEDULE = 'USING CRON 0 0 * * * Asia/Singapore' 
+AS
+  COPY INTO RAW_FACTSALES
+  FROM @CONTOSO_STAGE/FactSales.csv.gz
+  FILE_FORMAT = (TYPE = 'CSV', FIELD_OPTIONALLY_ENCLOSED_BY = '"', SKIP_HEADER = 1)
+  ON_ERROR = 'CONTINUE';
+
+-- 2. "Turn On" the Task (Tasks are created in 'Suspended' state by default)
+ALTER TASK LOAD_FACTSALES_DAILY_TASK RESUME;
+
+-- 3. Verification: Check that the task is currently 'STARTED'
+SHOW TASKS LIKE 'LOAD_FACTSALES_DAILY_TASK';

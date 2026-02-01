@@ -1,0 +1,16 @@
+-- TASK 3.3.4: Revenue Reconciliation
+-- Goal: Ensure no financial value was lost or doubled during transformation.
+
+SELECT 
+    'Physical Sales' AS Dataset,
+    (SELECT SUM(SalesQuantity * UnitPrice) FROM RAW_CONTOSO.RAW_FACTSALES) AS Raw_Revenue_Calc,
+    (SELECT SUM(TotalRevenue) FROM DW_CONTOSO.VIEW_MASTER_SALES) AS View_Revenue_Total,
+    (SELECT SUM(TotalRevenue) FROM DW_CONTOSO.VIEW_MASTER_SALES) - 
+    (SELECT SUM(SalesQuantity * UnitPrice) FROM RAW_CONTOSO.RAW_FACTSALES) AS Difference
+UNION ALL
+SELECT 
+    'Online Sales' AS Dataset,
+    (SELECT SUM(SalesQuantity * UnitPrice) FROM RAW_CONTOSO.RAW_FACT_ONLINESALES) AS Raw_Revenue_Calc,
+    (SELECT SUM(TotalRevenue) FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES) AS View_Revenue_Total,
+    (SELECT SUM(TotalRevenue) FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES) - 
+    (SELECT SUM(SalesQuantity * UnitPrice) FROM RAW_CONTOSO.RAW_FACT_ONLINESALES) AS Difference;

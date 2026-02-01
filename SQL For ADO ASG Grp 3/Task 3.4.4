@@ -1,0 +1,54 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- =============================================================================
+-- TASK 3.4.4: VALIDATION SUITE FOR PHYSICAL SALES
+-- =============================================================================
+
+-- Row Count &  Filter Verification
+SELECT 'Raw Fact Table' AS Source, COUNT(*) AS Row_Count FROM RAW_CONTOSO.RAW_FACTSALES
+UNION ALL
+SELECT 'Final Reporting View', COUNT(*) FROM DW_CONTOSO.VIEW_RPT_SALES_MASTER;
+
+-- CHECK 2: Cleaning Logic Verification
+SELECT COUNT(*) AS Failed_Cleaning_Rows
+FROM DW_CONTOSO.VIEW_RPT_SALES_MASTER
+WHERE StoreName = '' OR StoreName = 'N/A' 
+   OR StoreStatus = 'N/A' OR StoreStatus = 'Unknown';
+
+-- CHECK 3: Metric Integrity (Math Check)
+SELECT COUNT(*) AS Missing_Revenue_Rows
+FROM DW_CONTOSO.VIEW_RPT_SALES_MASTER
+WHERE TotalRevenue IS NULL;
+
+-- CHECK 4: Primary Key Duplication Check (Fan-out Check)
+SELECT SalesKey, COUNT(*) 
+FROM DW_CONTOSO.VIEW_RPT_SALES_MASTER
+GROUP BY SalesKey
+HAVING COUNT(*) > 1;
+
+-- =============================================================================
+-- TASK 3.4.4: VALIDATION SUITE FOR ONLINE SALES
+-- =============================================================================
+
+-- CHECK 1: Row Count Verification
+SELECT 'Raw Online Table' AS Source, COUNT(*) AS Row_Count FROM RAW_CONTOSO.RAW_FACT_ONLINESALES
+UNION ALL
+SELECT 'Final Online View', COUNT(*) FROM DW_CONTOSO.VIEW_RPT_ONLINESALES_MASTER;
+
+-- CHECK 2: Cleaning Logic Verification
+SELECT COUNT(*) AS Failed_Cleaning_Rows
+FROM DW_CONTOSO.VIEW_RPT_ONLINESALES_MASTER
+WHERE Gender IN ('N/A', 'Unknown', '0')
+   OR CustomerName = '';
+
+-- CHECK 3: Metric Integrity
+SELECT COUNT(*) AS Missing_Revenue_Rows
+FROM DW_CONTOSO.VIEW_RPT_ONLINESALES_MASTER
+WHERE TotalRevenue IS NULL;
+
+-- CHECK 4: Duplication Check
+SELECT SalesKey, COUNT(*) 
+FROM DW_CONTOSO.VIEW_RPT_ONLINESALES_MASTER
+GROUP BY SalesKey
+HAVING COUNT(*) > 1;

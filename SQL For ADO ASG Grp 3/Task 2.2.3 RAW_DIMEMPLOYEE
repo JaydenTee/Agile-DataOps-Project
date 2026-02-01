@@ -1,0 +1,79 @@
+-- Context
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- Optional: confirm file exists
+LIST @CONTOSO_STAGE;
+
+-- Preview staged data
+SELECT
+  $1  AS EmployeeKey,
+  $2  AS ParentEmployeeKey,
+  $3  AS FirstName,
+  $4  AS LastName,
+  $5  AS Title,
+  $6  AS HireDate,
+  $7  AS BirthDate,
+  $8  AS EmailAddress,
+  $9  AS Phone,
+  $10 AS EmergencyContactName,
+  $11 AS EmergencyContactPhone,
+  $12 AS Gender,
+  $13 AS PayFrequency,
+  $14 AS BaseRate,
+  $15 AS VacationHours,
+  $16 AS DepartmentName,
+  $17 AS StartDate,
+  $18 AS Status,
+  $19 AS SalaryStatus,
+  $20 AS IsSalesPerson,
+  $21 AS IsMarried
+FROM @CONTOSO_STAGE/DimEmployee.csv
+LIMIT 10;
+
+-- Create RAW table
+CREATE OR REPLACE TABLE RAW_DIMEMPLOYEE (
+  EmployeeKey              INTEGER,
+  ParentEmployeeKey        INTEGER,
+  FirstName                VARCHAR,
+  LastName                 VARCHAR,
+  Title                    VARCHAR,
+  HireDate                 DATE,
+  BirthDate                DATE,
+  EmailAddress             VARCHAR,
+  Phone                    VARCHAR,
+  EmergencyContactName     VARCHAR,
+  EmergencyContactPhone    VARCHAR,
+  Gender                   VARCHAR,
+  PayFrequency             INTEGER,
+  BaseRate                 FLOAT,
+  VacationHours            INTEGER,
+  DepartmentName           VARCHAR,
+  StartDate                DATE,
+  Status                   VARCHAR,
+  SalaryStatus             VARCHAR,
+  IsSalesPerson            VARCHAR,
+  IsMarried                VARCHAR
+);
+
+-- Load data
+COPY INTO RAW_DIMEMPLOYEE
+FROM @CONTOSO_STAGE/DimEmployee.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- Validation
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMEMPLOYEE;
+
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT EmployeeKey) AS distinct_keys
+FROM RAW_DIMEMPLOYEE;
+
+-- Sample check
+SELECT *
+FROM RAW_DIMEMPLOYEE
+ORDER BY EmployeeKey
+LIMIT 20;

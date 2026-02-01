@@ -1,0 +1,42 @@
+-- Context
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- Optional: confirm file exists
+LIST @CONTOSO_STAGE;
+
+-- Preview staged data
+SELECT
+  $1 AS CurrencyKey,
+  $2 AS CurrencyName,
+  $3 AS CurrencyDescription
+FROM @CONTOSO_STAGE/DimCurrency.csv
+LIMIT 10;
+
+-- Create RAW table
+CREATE OR REPLACE TABLE RAW_DIMCURRENCY (
+  CurrencyKey          INTEGER,
+  CurrencyName         VARCHAR,
+  CurrencyDescription  VARCHAR
+);
+
+-- Load data
+COPY INTO RAW_DIMCURRENCY
+FROM @CONTOSO_STAGE/DimCurrency.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- Validation
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMCURRENCY;
+
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT CurrencyKey) AS distinct_keys
+FROM RAW_DIMCURRENCY;
+
+SELECT *
+FROM RAW_DIMCURRENCY
+ORDER BY CurrencyKey
+LIMIT 20;

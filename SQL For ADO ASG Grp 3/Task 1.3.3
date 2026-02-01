@@ -1,0 +1,32 @@
+--Task 3.3 Load table A into RAW_CONTOSO
+CREATE OR REPLACE TABLE RAW_DIMPRODUCT (
+    ProductKey INT,
+    ProductName STRING,
+    ProductDescription STRING,
+    ProductSubcategoryKey INT,
+    Manufacturer STRING,
+    BrandName STRING,
+    ClassID STRING,
+    ClassName STRING,
+    StyleID STRING,
+    StyleName STRING,
+    ColorID STRING,
+    ColorName STRING,
+    Weight FLOAT,
+    WeightUnitMeasureID STRING,
+    UnitOfMeasureID STRING,    
+    UnitOfMeasureName STRING,  
+    StockTypeID STRING,        
+    StockTypeName STRING,      
+    UnitCost FLOAT,            
+    UnitPrice FLOAT,           
+    AvailableForSaleDate TIMESTAMP, 
+    Status STRING              
+);
+
+COPY INTO RAW_DIMPRODUCT
+FROM @CONTOSO_STAGE/DimProduct.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'CONTINUE'; 
+
+SELECT COUNT(*) FROM RAW_DIMPRODUCT;

@@ -1,0 +1,42 @@
+-- Context
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- Optional: confirm file exists
+LIST @CONTOSO_STAGE;
+
+-- Preview staged data
+SELECT
+  $1 AS ChannelKey,
+  $2 AS ChannelName,
+  $3 AS ChannelDescription
+FROM @CONTOSO_STAGE/DimChannel.csv
+LIMIT 10;
+
+-- Create RAW table
+CREATE OR REPLACE TABLE RAW_DIMCHANNEL (
+  ChannelKey          INTEGER,
+  ChannelName         VARCHAR,
+  ChannelDescription  VARCHAR
+);
+
+-- Load data
+COPY INTO RAW_DIMCHANNEL
+FROM @CONTOSO_STAGE/DimChannel.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- Validation
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMCHANNEL;
+
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT ChannelKey) AS distinct_keys
+FROM RAW_DIMCHANNEL;
+
+SELECT *
+FROM RAW_DIMCHANNEL
+ORDER BY ChannelKey
+LIMIT 20;

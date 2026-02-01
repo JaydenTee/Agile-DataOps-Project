@@ -1,0 +1,15 @@
+-- TASK 3.3.2: ROW COUNT INTEGRITY CHECK
+-- Expected Results: Raw Count should equal View Count (or View count is slightly lower since we cleaned data).
+-- FYI, if View Count > Raw Count, could mean that have a critical error.
+
+SELECT 
+    'Physical Sales' AS Source,
+    (SELECT COUNT(*) FROM RAW_CONTOSO.RAW_FACTSALES) AS Raw_Count,
+    (SELECT COUNT(*) FROM DW_CONTOSO.VIEW_MASTER_SALES) AS View_Count,
+    (SELECT COUNT(*) FROM DW_CONTOSO.VIEW_MASTER_SALES) - (SELECT COUNT(*) FROM RAW_CONTOSO.RAW_FACTSALES) AS Difference
+UNION ALL
+SELECT 
+    'Online Sales' AS Source,
+    (SELECT COUNT(*) FROM RAW_CONTOSO.RAW_FACT_ONLINESALES) AS Raw_Count,
+    (SELECT COUNT(*) FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES) AS View_Count,
+    (SELECT COUNT(*) FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES) - (SELECT COUNT(*) FROM RAW_CONTOSO.RAW_FACT_ONLINESALES) AS Difference;

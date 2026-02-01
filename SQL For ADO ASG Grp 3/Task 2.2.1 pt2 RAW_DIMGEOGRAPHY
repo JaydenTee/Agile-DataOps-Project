@@ -1,0 +1,42 @@
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+SELECT
+  $1, $2, $3, $4, $5, $6
+FROM @CONTOSO_STAGE/DimGeography.csv
+LIMIT 10;
+
+--- Create Table 
+
+CREATE OR REPLACE TABLE RAW_DIMGEOGRAPHY (
+  GeographyKey        INTEGER,
+  GeographyType       VARCHAR,
+  ContinentName       VARCHAR,
+  CityName            VARCHAR,
+  StateProvinceName   VARCHAR,
+  RegionCountryName   VARCHAR
+);
+
+--- COPY INTO RAW_DIMGEOGRAPHY
+
+COPY INTO RAW_DIMGEOGRAPHY
+FROM @CONTOSO_STAGE/DimGeography.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+--- Validation 
+
+SELECT COUNT(*) FROM RAW_DIMGEOGRAPHY;
+
+--- Primary Key Sanity Check
+
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT GeographyKey) AS distinct_keys
+FROM RAW_DIMGEOGRAPHY;
+
+--- Sample data check
+
+SELECT * FROM RAW_DIMGEOGRAPHY LIMIT 20;
+

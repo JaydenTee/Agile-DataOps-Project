@@ -1,0 +1,9 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO; 
+
+SELECT DISTINCT RegionCountryName, GeographyKey
+FROM RAW_CONTOSO.RAW_DIMGEOGRAPHY
+WHERE RegionCountryName LIKE '%Sing%' 
+   OR RegionCountryName LIKE '%Malay%'
+   OR RegionCountryName LIKE '%Thai%'
+   OR RegionCountryName LIKE '%Viet%';

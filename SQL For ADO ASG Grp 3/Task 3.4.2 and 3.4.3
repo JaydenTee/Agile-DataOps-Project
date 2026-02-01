@@ -1,0 +1,97 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- =============================================================================
+-- FINAL REPORTING VIEW: PHYSICAL STORE SALES
+-- Task 3.4.2 & Task 3.4.3
+-- =============================================================================
+CREATE OR REPLACE VIEW VIEW_RPT_SALES_MASTER AS
+SELECT 
+
+    f.SalesKey,
+    f.DateKey,
+    f.StoreKey,
+    f.ProductKey,
+
+
+    f.SalesQuantity,
+    f.UnitPrice,
+    f.UnitCost,
+    (f.SalesQuantity * f.UnitPrice) AS TotalRevenue,
+    (f.SalesQuantity * f.UnitCost)  AS TotalCost,
+    ((f.SalesQuantity * f.UnitPrice) - (f.SalesQuantity * f.UnitCost)) AS NetProfit,
+
+    NULLIF(TRIM(s.StoreName), '') AS StoreName,
+    CASE 
+        WHEN s.Status IN ('N/A', 'Unknown', 'Off', '0') THEN NULL 
+        ELSE s.Status 
+    END AS StoreStatus,
+    s.StoreType,
+
+    
+    TRIM(g.RegionCountryName)     AS CountryName,
+    TRIM(g.ContinentName)         AS ContinentName,
+
+
+    TRIM(p.ProductName)           AS ProductName,
+    TRIM(p.BrandName)             AS BrandName,
+    TRIM(cat.ProductCategoryName) AS CategoryName,
+    TRIM(sub.ProductSubcategoryName) AS SubCategoryName,
+    
+
+    TRIM(emp.FirstName || ' ' || emp.LastName) AS StoreManagerName,
+
+    d.CalendarYear                AS CalendarYear
+
+FROM RAW_CONTOSO.RAW_FACTSALES f
+INNER JOIN RAW_CONTOSO.RAW_DIMSTORE s ON f.StoreKey = s.StoreKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPRODUCT p ON f.ProductKey = p.ProductKey
+INNER JOIN RAW_CONTOSO.RAW_DIMDATE d ON f.DateKey = d.DateKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g ON s.GeographyKey = g.GeographyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTSUBCATEGORY sub ON p.ProductSubcategoryKey = sub.ProductSubcategoryKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTCATEGORY cat ON sub.ProductCategoryKey = cat.ProductCategoryKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMEMPLOYEE emp ON s.StoreManager = emp.EmployeeKey;
+
+
+-- =============================================================================
+-- FINAL REPORTING VIEW: ONLINE SALES
+-- Task 3.4.2 & Task 3.4.3
+-- =============================================================================
+CREATE OR REPLACE VIEW VIEW_RPT_ONLINESALES_MASTER AS
+SELECT 
+    f.OnlineSalesKey AS SalesKey,
+    f.DateKey,
+    f.CustomerKey,
+    f.ProductKey,
+
+    f.SalesQuantity,
+    f.UnitPrice,
+    f.UnitCost,
+    (f.SalesQuantity * f.UnitPrice) AS TotalRevenue,
+    (f.SalesQuantity * f.UnitCost)  AS TotalCost,
+    ((f.SalesQuantity * f.UnitPrice) - (f.SalesQuantity * f.UnitCost)) AS NetProfit,
+
+    TRIM(cust.FirstName || ' ' || cust.LastName) AS CustomerName,
+    CASE 
+        WHEN cust.Gender IN ('N/A', 'Unknown', '0') THEN NULL 
+        ELSE cust.Gender 
+    END AS Gender,
+
+    TRIM(g.RegionCountryName)     AS CountryName,
+    TRIM(g.ContinentName)         AS ContinentName,
+
+    TRIM(p.ProductName)           AS ProductName,
+    TRIM(p.BrandName)             AS BrandName,
+    TRIM(cat.ProductCategoryName) AS CategoryName,
+    
+    d.CalendarYear                AS CalendarYear,
+    cur.CurrencyName              AS CurrencyName
+
+FROM RAW_CONTOSO.RAW_FACT_ONLINESALES f
+INNER JOIN RAW_CONTOSO.RAW_DIMCUSTOMER cust ON f.CustomerKey = cust.CustomerKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPRODUCT p ON f.ProductKey = p.ProductKey
+INNER JOIN RAW_CONTOSO.RAW_DIMDATE d ON f.DateKey = d.DateKey
+INNER JOIN RAW_CONTOSO.RAW_DIMCURRENCY cur ON f.CurrencyKey = cur.CurrencyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g ON cust.GeographyKey = g.GeographyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTSUBCATEGORY sub ON p.ProductSubcategoryKey = sub.ProductSubcategoryKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMPRODUCTCATEGORY cat ON sub.ProductCategoryKey = cat.ProductCategoryKey;

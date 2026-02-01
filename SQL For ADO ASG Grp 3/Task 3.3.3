@@ -1,0 +1,15 @@
+-- TASK 3.3.3: KEY UNIQUENESS CHECK
+-- Expected Result: 0 Rows returned. 
+-- If rows are returned, it means these Keys appear more than once (Bad Data).
+
+SELECT 'Physical Sales Duplicates' AS Test_Type, SalesKey AS Key_ID, COUNT(*) AS Count
+FROM DW_CONTOSO.VIEW_MASTER_SALES
+GROUP BY SalesKey
+HAVING COUNT(*) > 1
+
+UNION ALL
+
+SELECT 'Online Sales Duplicates' AS Test_Type, OnlineSalesKey AS Key_ID, COUNT(*) AS Count
+FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES
+GROUP BY OnlineSalesKey
+HAVING COUNT(*) > 1;

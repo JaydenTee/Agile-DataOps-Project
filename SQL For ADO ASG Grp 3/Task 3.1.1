@@ -1,0 +1,83 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- TASK 3.1.1: INVENTORY OF PLACEHOLDERS (RAW DATA PROFILE)
+-- Updated to be CASE-INSENSITIVE and include EMPTY STRINGS/SPACES.
+
+-- 1. Shared Dimension: PRODUCT
+SELECT 
+    'RAW_DIMPRODUCT' AS Source_Table,
+    'BrandName'      AS Column_Name,
+    'Shared (Online & Store)' AS Channel_Usage,
+    -- Case Insensitive Check for N/A
+    SUM(CASE WHEN UPPER(BrandName) = 'N/A' THEN 1 ELSE 0 END)     AS Count_NA,
+    -- Case Insensitive Check for Unknown
+    SUM(CASE WHEN UPPER(BrandName) = 'UNKNOWN' THEN 1 ELSE 0 END) AS Count_Unknown,
+    -- Check for Empty Strings or Just Spaces
+    SUM(CASE WHEN TRIM(BrandName) = '' THEN 1 ELSE 0 END)         AS Count_Empty,
+    -- Standard NULL Check
+    SUM(CASE WHEN BrandName IS NULL THEN 1 ELSE 0 END)            AS Count_NULL
+FROM RAW_DIMPRODUCT
+
+UNION ALL
+
+-- 2. Physical Sales Dimension: STORE
+SELECT 
+    'RAW_DIMSTORE',
+    'StoreType',
+    'Physical Sales Only',
+    SUM(CASE WHEN UPPER(StoreType) = 'N/A' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN UPPER(StoreType) = 'UNKNOWN' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN TRIM(StoreType) = '' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN StoreType IS NULL THEN 1 ELSE 0 END)
+FROM RAW_DIMSTORE
+
+UNION ALL
+
+-- 3. Online Sales Dimension: CUSTOMER
+SELECT 
+    'RAW_DIMCUSTOMER',
+    'Education',
+    'Online Sales Only',
+    SUM(CASE WHEN UPPER(Education) = 'N/A' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN UPPER(Education) = 'UNKNOWN' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN TRIM(Education) = '' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN Education IS NULL THEN 1 ELSE 0 END)
+FROM RAW_DIMCUSTOMER;
+
+
+
+
+
+
+
+
+
+
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+
+-- Proving that all case variations of "N/A" and "Unknown" are gone.
+
+-- 1. Check Physical Sales View
+SELECT 
+    'VIEW_MASTER_SALES' AS Reporting_View,
+    'Brand'             AS Column_Name,
+    SUM(CASE WHEN UPPER(Brand) = 'N/A' THEN 1 ELSE 0 END)     AS Count_NA,      -- Should be 0
+    SUM(CASE WHEN UPPER(Brand) = 'UNKNOWN' THEN 1 ELSE 0 END) AS Count_Unknown, -- Should be 0
+    SUM(CASE WHEN TRIM(Brand) = '' THEN 1 ELSE 0 END)         AS Count_Empty,   -- Should be 0
+    SUM(CASE WHEN Brand IS NULL THEN 1 ELSE 0 END)            AS Count_Clean_NULL
+FROM VIEW_MASTER_SALES
+
+UNION ALL
+
+-- 2. Check Online Sales View
+SELECT 
+    'VIEW_MASTER_ONLINESALES' AS Reporting_View,
+    'Brand'                   AS Column_Name,
+    SUM(CASE WHEN UPPER(Brand) = 'N/A' THEN 1 ELSE 0 END)     AS Count_NA,
+    SUM(CASE WHEN UPPER(Brand) = 'UNKNOWN' THEN 1 ELSE 0 END) AS Count_Unknown,
+    SUM(CASE WHEN TRIM(Brand) = '' THEN 1 ELSE 0 END)         AS Count_Empty,
+    SUM(CASE WHEN Brand IS NULL THEN 1 ELSE 0 END)            AS Count_Clean_NULL
+FROM VIEW_MASTER_ONLINESALES;

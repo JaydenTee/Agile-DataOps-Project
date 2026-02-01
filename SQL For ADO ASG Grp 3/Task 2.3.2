@@ -1,0 +1,79 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 2.3.2: Switch to INNER JOIN (Filter Orphans)
+CREATE OR REPLACE VIEW VIEW_MASTER_SALES AS
+SELECT 
+    f.SalesKey,
+    f.DateKey,
+    f.StoreKey,
+    f.ProductKey,
+    
+    f.SalesQuantity,
+    f.UnitPrice,
+    
+    s.StoreName,
+    g.RegionCountryName,
+    p.ProductName,
+    p.BrandName,
+    d.CalendarYear,
+    
+    (emp.FirstName || ' ' || emp.LastName) AS StoreManagerName
+
+FROM RAW_CONTOSO.RAW_FACTSALES f
+
+-- [CRITICAL CHANGE] INNER JOIN removes rows with invalid Keys
+INNER JOIN RAW_CONTOSO.RAW_DIMSTORE s 
+    ON f.StoreKey = s.StoreKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPRODUCT p 
+    ON f.ProductKey = p.ProductKey
+INNER JOIN RAW_CONTOSO.RAW_DIMDATE d 
+    ON f.DateKey = d.DateKey
+INNER JOIN RAW_CONTOSO.RAW_DIMCHANNEL c 
+    ON f.channelKey = c.channelKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPROMOTION pro 
+    ON f.PromotionKey = pro.PromotionKey
+
+-- [KEEP LEFT JOIN] These are linked to Dimensions, not the Fact table directly
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g 
+    ON s.GeographyKey = g.GeographyKey
+LEFT JOIN RAW_CONTOSO.RAW_DIMEMPLOYEE emp 
+    ON s.StoreManager = emp.EmployeeKey;
+
+
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 2.3.2: Switch to INNER JOIN (Filter Orphans)
+CREATE OR REPLACE VIEW VIEW_MASTER_ONLINESALES AS
+SELECT 
+    f.OnlineSalesKey,
+    f.DateKey,
+    f.CustomerKey,
+    f.ProductKey,
+    
+    f.SalesQuantity,
+    f.UnitPrice,
+    
+    (cust.FirstName || ' ' || cust.LastName) AS CustomerName,
+    g.RegionCountryName,
+    p.ProductName,
+    p.BrandName,
+    d.CalendarYear,
+    cur.CurrencyName
+
+FROM RAW_CONTOSO.RAW_FACT_ONLINESALES f
+
+-- [CRITICAL CHANGE] INNER JOIN removes rows with invalid Keys
+INNER JOIN RAW_CONTOSO.RAW_DIMCUSTOMER cust 
+    ON f.CustomerKey = cust.CustomerKey
+INNER JOIN RAW_CONTOSO.RAW_DIMPRODUCT p 
+    ON f.ProductKey = p.ProductKey
+INNER JOIN RAW_CONTOSO.RAW_DIMDATE d 
+    ON f.DateKey = d.DateKey
+INNER JOIN RAW_CONTOSO.RAW_DIMCURRENCY cur 
+    ON f.CurrencyKey = cur.CurrencyKey
+
+-- [KEEP LEFT JOIN] Geography is linked to Customer
+LEFT JOIN RAW_CONTOSO.RAW_DIMGEOGRAPHY g 
+    ON cust.GeographyKey = g.GeographyKey;

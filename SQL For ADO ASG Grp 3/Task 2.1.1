@@ -1,0 +1,36 @@
+USE SCHEMA RAW_CONTOSO;
+
+-- 1. Ensure Table exists (Matching your columns)
+CREATE OR REPLACE TABLE RAW_FACTSALES (
+    SalesKey INT,
+    DateKey DATETIME,
+    channelKey INT,       
+    StoreKey INT,
+    ProductKey INT,
+    PromotionKey INT,
+    CurrencyKey INT,
+    UnitCost DECIMAL(10,2),
+    UnitPrice DECIMAL(10,2),
+    SalesQuantity INT,
+    ReturnQuantity INT,
+    ReturnAmount DECIMAL(10,2),
+    DiscountQuantity INT,
+    DiscountAmount DECIMAL(10,2),
+    TotalCost DECIMAL(10,2),
+    SalesAmount DECIMAL(10,2)
+);
+
+USE SCHEMA RAW_CONTOSO;
+
+COPY INTO RAW_FACTSALES
+FROM @CONTOSO_STAGE
+PATTERN = '.*FactSales_.*.csv'   
+FILE_FORMAT = (
+    TYPE = 'CSV',
+    FIELD_DELIMITER = ',',
+    SKIP_HEADER = 1,             
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"',
+    NULL_IF = ('NULL', 'null', ''),
+    ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
+)
+ON_ERROR = 'CONTINUE';       

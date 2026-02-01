@@ -1,0 +1,37 @@
+--Task 3.4 Load table B into RAW_CONTOSO
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+CREATE OR REPLACE TABLE RAW_DIMCUSTOMER (
+    CustomerKey INT,
+    GeographyKey INT,
+    FirstName STRING,
+    LastName STRING,
+    BirthDate DATE,             
+    MaritalStatus STRING,       
+    Gender STRING,              
+    YearlyIncome FLOAT,         
+    TotalChildren INT,
+    NumberChildrenAtHome INT,
+    Education STRING,
+    Occupation STRING,
+    HouseOwnerFlag INT,         
+    NumberCarsOwned INT         
+);
+
+--Load Data with Date Format Fix
+COPY INTO RAW_DIMCUSTOMER
+FROM @CONTOSO_STAGE/DimCustomer.csv
+FILE_FORMAT = (
+    TYPE = 'CSV'
+    FIELD_DELIMITER = ','
+    SKIP_HEADER = 1
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+    ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
+    NULL_IF = ('NULL', 'null', '')
+    DATE_FORMAT = 'DD/MM/YYYY'   
+)
+ON_ERROR = 'CONTINUE';
+
+--Verify it worked
+SELECT COUNT(*) FROM RAW_DIMCUSTOMER;

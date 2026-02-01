@@ -1,0 +1,55 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- 3.2.2 DUPLICATE DETECTION SUITE (FIXED)
+-- Validating uniqueness for Sales, Online Sales, Products, AND Customers.
+
+WITH Duplicate_Check_CTE AS (
+    -- 1. Store Sales Check
+    SELECT 
+        'Store Sales' AS Entity, 
+        'SalesKey' AS Criteria,
+        (SELECT COUNT(*) FROM (
+            SELECT SalesKey FROM VIEW_MASTER_SALES GROUP BY SalesKey HAVING COUNT(*) > 1
+        )) AS Cnt
+
+    UNION ALL
+
+    -- 2. Online Sales Check
+    SELECT 
+        'Online Sales', 
+        'OnlineSalesKey',
+        (SELECT COUNT(*) FROM (
+            SELECT OnlineSalesKey FROM VIEW_MASTER_ONLINESALES GROUP BY OnlineSalesKey HAVING COUNT(*) > 1
+        ))
+
+    UNION ALL
+
+    -- 3. Product Check
+    SELECT 
+        'Product', 
+        'ProductKey',
+        (SELECT COUNT(*) FROM (
+            SELECT ProductKey FROM RAW_CONTOSO.RAW_DIMPRODUCT GROUP BY ProductKey HAVING COUNT(*) > 1
+        ))
+
+    UNION ALL
+
+    -- 4. Customer Check (Required for feedback)
+    SELECT 
+        'Customer', 
+        'CustomerKey',
+        (SELECT COUNT(*) FROM (
+            SELECT CustomerKey FROM RAW_CONTOSO.RAW_DIMCUSTOMER GROUP BY CustomerKey HAVING COUNT(*) > 1
+        ))
+)
+-- Final Output: Now we can safely use the counts calculated above
+SELECT 
+    Entity,
+    Criteria,
+    Cnt AS Duplicate_Count,
+    CASE 
+        WHEN Cnt = 0 THEN 'PASSED (No Examples Available)' 
+        ELSE 'FAILED' 
+    END AS Status
+FROM Duplicate_Check_CTE;

@@ -1,0 +1,40 @@
+-- "THE RECONCILIATION BRIDGE"
+
+SELECT 
+    'Raw Source For Physical Sales' AS Category, 
+    SUM(SalesQuantity * UnitPrice) AS Revenue 
+FROM RAW_CONTOSO.RAW_FACTSALES
+
+UNION ALL
+
+SELECT 
+    'Physical: Less Orphans (Invalid Products)' AS Category, 
+    -SUM(SalesQuantity * UnitPrice) AS Revenue 
+FROM RAW_CONTOSO.RAW_FACTSALES
+WHERE ProductKey NOT IN (SELECT ProductKey FROM RAW_CONTOSO.RAW_DIMPRODUCT)
+   OR StoreKey NOT IN (SELECT StoreKey FROM RAW_CONTOSO.RAW_DIMSTORE)
+
+UNION ALL
+
+SELECT 
+    'Final View For Physical Sales (Actual)' AS Category, 
+    SUM(TotalRevenue) AS Revenue 
+FROM DW_CONTOSO.VIEW_MASTER_SALES;
+
+
+-- 2. ONLINE SALES RECONCILIATION
+SELECT 
+    'Raw Source For Online Sales' AS Category, 
+    SUM(SalesQuantity * UnitPrice) AS Revenue 
+FROM RAW_CONTOSO.RAW_FACT_ONLINESALES
+UNION ALL
+SELECT 
+    'Online: Less Orphans (Invalid Products)' AS Category, 
+    -SUM(SalesQuantity * UnitPrice) AS Revenue 
+FROM RAW_CONTOSO.RAW_FACT_ONLINESALES
+WHERE ProductKey NOT IN (SELECT ProductKey FROM RAW_CONTOSO.RAW_DIMPRODUCT)
+UNION ALL
+SELECT 
+    'Final View For Online Sales (Actual)' AS Category, 
+    SUM(TotalRevenue) AS Revenue 
+FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES;

@@ -1,0 +1,48 @@
+-- Context
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- (Optional) Confirm the file exists in the stage
+LIST @CONTOSO_STAGE;
+
+-- (Optional) Preview staged data (header should already be skipped by file format)
+SELECT
+  $1 AS ProductCategoryKey,
+  $2 AS ProductCategoryName
+FROM @CONTOSO_STAGE/DimProductCategory.csv
+LIMIT 10;
+
+-- Create RAW table (matches your CSV headers)
+CREATE OR REPLACE TABLE RAW_DIMPRODUCTCATEGORY (
+  ProductCategoryKey   INTEGER,
+  ProductCategoryName  VARCHAR
+);
+
+-- Load
+COPY INTO RAW_DIMPRODUCTCATEGORY
+FROM @CONTOSO_STAGE/DimProductCategory.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- Validate: row count
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMPRODUCTCATEGORY;
+
+-- Validate: key uniqueness
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT ProductCategoryKey) AS distinct_keys
+FROM RAW_DIMPRODUCTCATEGORY;
+
+-- Validate: quick sample
+SELECT *
+FROM RAW_DIMPRODUCTCATEGORY
+ORDER BY ProductCategoryKey
+LIMIT 20;
+
+-- Validate: missing/blank checks (should be 0 ideally)
+SELECT
+  SUM(CASE WHEN ProductCategoryKey IS NULL THEN 1 ELSE 0 END) AS null_key_rows,
+  SUM(CASE WHEN ProductCategoryName IS NULL OR TRIM(ProductCategoryName) = '' THEN 1 ELSE 0 END) AS blank_name_rows
+FROM RAW_DIMPRODUCTCATEGORY;

@@ -1,0 +1,107 @@
+-- =========================================================
+-- Context
+-- =========================================================
+USE ROLE TRAINING_ROLE;
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO;
+
+-- =========================================================
+-- Step 1: Confirm file exists in stage
+-- =========================================================
+LIST @CONTOSO_STAGE;
+
+-- =========================================================
+-- Step 2: Preview staged data
+-- Header already skipped by CONTOSO_FILE_FORMAT
+-- =========================================================
+SELECT
+  $1  AS DateKey,
+  $2  AS CalendarYear,
+  $3  AS CalendarYearLabel,
+  $4  AS CalendarHalfYearLabel,
+  $5  AS CalendarQuarterLabel,
+  $6  AS CalendarMonthLabel,
+  $7  AS CalendarWeekLabel,
+  $8  AS CalendarDayOfWeekLabel,
+  $9  AS FiscalYear,
+  $10 AS FiscalYearLabel,
+  $11 AS FiscalHalfYearLabel,
+  $12 AS FiscalQuarterLabel,
+  $13 AS FiscalMonthLabel,
+  $14 AS IsWorkDay,
+  $15 AS IsHoliday,
+  $16 AS EuropeSeason,
+  $17 AS NorthAmericaSeason,
+  $18 AS AsiaSeason,
+  $19 AS MonthNumber,
+  $20 AS CalendarDayOfWeekNumber
+FROM @CONTOSO_STAGE/DimDate.csv
+LIMIT 10;
+
+-- =========================================================
+-- Step 3: Create RAW table (matches CSV headers exactly)
+-- =========================================================
+CREATE OR REPLACE TABLE RAW_DIMDATE (
+  DateKey                    DATE,
+  CalendarYear               INTEGER,
+  CalendarYearLabel           VARCHAR,
+  CalendarHalfYearLabel       VARCHAR,
+  CalendarQuarterLabel        VARCHAR,
+  CalendarMonthLabel          VARCHAR,
+  CalendarWeekLabel           VARCHAR,
+  CalendarDayOfWeekLabel      VARCHAR,
+  FiscalYear                 INTEGER,
+  FiscalYearLabel             VARCHAR,
+  FiscalHalfYearLabel         VARCHAR,
+  FiscalQuarterLabel          VARCHAR,
+  FiscalMonthLabel            VARCHAR,
+  IsWorkDay                  VARCHAR,
+  IsHoliday                  VARCHAR,
+  EuropeSeason               VARCHAR,
+  NorthAmericaSeason         VARCHAR,
+  AsiaSeason                 VARCHAR,
+  MonthNumber                INTEGER,
+  CalendarDayOfWeekNumber    INTEGER
+);
+
+
+-- =========================================================
+-- Step 4: Load data
+-- =========================================================
+COPY INTO RAW_DIMDATE
+FROM @CONTOSO_STAGE/DimDate.csv
+FILE_FORMAT = (FORMAT_NAME = CONTOSO_FILE_FORMAT)
+ON_ERROR = 'ABORT_STATEMENT';
+
+-- =========================================================
+-- Step 5: Validation - row count
+-- =========================================================
+SELECT COUNT(*) AS total_rows
+FROM RAW_DIMDATE;
+
+-- =========================================================
+-- Step 6: Validation - DateKey uniqueness
+-- =========================================================
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT DateKey) AS distinct_dates
+FROM RAW_DIMDATE;
+
+
+-- =========================================================
+-- Step 7: Validation – null checks (should be zero)
+-- =========================================================
+SELECT
+  SUM(CASE WHEN DateKey IS NULL THEN 1 ELSE 0 END) AS null_datekey,
+  SUM(CASE WHEN CalendarYear IS NULL THEN 1 ELSE 0 END) AS null_calendaryear
+FROM RAW_DIMDATE;
+
+
+-- Step 8: Quick sample
+
+SELECT *
+FROM RAW_DIMDATE
+ORDER BY DateKey
+LIMIT 20;
+
+

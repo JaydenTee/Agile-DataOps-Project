@@ -1,0 +1,6 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA RAW_CONTOSO; 
+
+SELECT COUNT(*) AS Non_SEA_Rows
+FROM VIEW_SEA_PERFORMANCE
+WHERE Country NOT IN ('Singapore', 'Malaysia', 'Thailand', 'Vietnam');

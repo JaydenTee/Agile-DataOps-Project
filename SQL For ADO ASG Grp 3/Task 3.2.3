@@ -1,0 +1,47 @@
+USE DATABASE CONTOSO_DB;
+USE SCHEMA DW_CONTOSO;
+
+-- TASK 3.2.3: Apply Deduplication Logic (Defensive View)
+-- Strategy: "Keep Latest" based on Date/ID.
+
+CREATE OR REPLACE VIEW VIEW_CLEAN_SALES_DATA AS
+WITH RankedSales AS (
+    SELECT 
+        *,
+        -- Assign a rank: 1 = The "Best" row. 2,3,etc = Duplicates.
+        ROW_NUMBER() OVER (
+            PARTITION BY SalesKey                -- Group by the Unique ID
+            ORDER BY DateKey DESC                -- Keep the most recent data
+        ) AS RowRank
+    FROM DW_CONTOSO.VIEW_MASTER_SALES
+)
+SELECT * FROM RankedSales
+WHERE RowRank = 1; -- <--- This filter removes the duplicates automatically
+
+-- Repeat for Online Sales
+CREATE OR REPLACE VIEW VIEW_CLEAN_ONLINESALES_DATA AS
+WITH RankedOnline AS (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY OnlineSalesKey          -- Group by the Unique ID
+            ORDER BY DateKey DESC
+        ) AS RowRank
+    FROM DW_CONTOSO.VIEW_MASTER_ONLINESALES
+)
+SELECT * FROM RankedOnline
+WHERE RowRank = 1;
+
+
+-- The "Before vs After" Check
+SELECT 
+    'Original (Master)'       AS View_Type, 
+    COUNT(*)                  AS Row_Count 
+FROM DW_CONTOSO.VIEW_MASTER_SALES
+
+UNION ALL
+
+SELECT 
+    'Cleaned (Deduplicated)'  AS View_Type, 
+    COUNT(*)                  AS Row_Count 
+FROM DW_CONTOSO.VIEW_CLEAN_SALES_DATA;
