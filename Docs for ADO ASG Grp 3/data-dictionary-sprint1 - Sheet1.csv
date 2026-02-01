@@ -1,0 +1,39 @@
+Table Name,Column Name,Data Type,Description,Key Type
+RAW_DIMCUSTOMER,CUSTOMERKEY,Number,Unique identifier for each customer record,PK
+RAW_DIMCUSTOMER,FIRSTNAME,Varchar,Customer first name,normal
+RAW_DIMCUSTOMER,LASTNAME,Varchar,Customer last name,normal
+RAW_DIMCUSTOMER,BIRTHDATE,Date,Customer date of birth,normal
+RAW_DIMCUSTOMER,GENDER,Varchar,Customer gender value as provided in source,normal
+RAW_DIMCUSTOMER,MARITALSTATUS,Varchar,Customer marital status,normal
+RAW_DIMCUSTOMER,EDUCATION,Varchar,Highest education level of customer,normal
+RAW_DIMCUSTOMER,OCCUPATION,Varchar,Customer occupation category,normal
+RAW_DIMCUSTOMER,HOUSEOWNERFLAG,Number,Flag indicating if customer is a homeowner (source-coded),normal
+RAW_DIMCUSTOMER,NUMBERCARSOWNED,Number,Number of cars owned by customer,normal
+RAW_DIMCUSTOMER,TOTALCHILDREN,Number,Total number of children for customer,normal
+RAW_DIMCUSTOMER,NUMBERCHILDRENATHOME,Number,Number of children currently living at home,normal
+RAW_DIMCUSTOMER,YEARLYINCOME,Float,Customer annual income (numeric),normal
+RAW_DIMCUSTOMER,GEOGRAPHYKEY,Number,Geography/location identifier for customer (joins to a geography dimension if available),normal
+,,,,
+Table Name,Column Name,Data Type,Description,Key Type
+RAW_DIMPRODUCT,PRODUCTKEY,Number,Unique identifier for each product record,PK
+RAW_DIMPRODUCT,PRODUCTNAME,Varchar,Product name,normal
+RAW_DIMPRODUCT,PRODUCTDESCRIPTION,Varchar,Text description of product,normal
+RAW_DIMPRODUCT,BRANDNAME,Varchar,Product brand name,normal
+RAW_DIMPRODUCT,MANUFACTURER,Varchar,Product manufacturer name,normal
+RAW_DIMPRODUCT,AVAILABLEFORSALEDATE,Timestamp,Date and time when product becomes available for sale,normal
+RAW_DIMPRODUCT,STATUS,Varchar,Product status (source-coded),normal
+RAW_DIMPRODUCT,UNITCOST,Float,Cost per unit for the product,normal
+RAW_DIMPRODUCT,UNITPRICE,Float,Selling price per unit for the product,normal
+RAW_DIMPRODUCT,WEIGHT,Float,Product weight value,normal
+RAW_DIMPRODUCT,WEIGHTUNITMEASUREID,Varchar,Unit of measure ID for weight (source-coded),normal
+RAW_DIMPRODUCT,UNITOFMEASUREID,Varchar,Unit of measure ID for selling unit (source-coded),normal
+RAW_DIMPRODUCT,UNITOFMEASURENAME,Varchar,Unit of measure name for selling unit,normal
+RAW_DIMPRODUCT,PRODUCTSUBCATEGORYKEY,Number,Product subcategory identifier (joins to subcategory dimension if available),normal
+RAW_DIMPRODUCT,COLORID,Varchar,Color identifier (source-coded),normal
+RAW_DIMPRODUCT,COLORNAME,Varchar,Color name,normal
+RAW_DIMPRODUCT,CLASSID,Varchar,Product class identifier (source-coded),normal
+RAW_DIMPRODUCT,CLASSNAME,Varchar,Product class name/label,normal
+RAW_DIMPRODUCT,STOCKTYPEID,Varchar,Stock type identifier (source-coded),normal
+RAW_DIMPRODUCT,STOCKTYPENAME,Varchar,Stock type name/label,normal
+RAW_DIMPRODUCT,STYLEID,Varchar,Style identifier (source-coded),normal
+RAW_DIMPRODUCT,STYLENAME,Varchar,Style name/label,normal

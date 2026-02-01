@@ -1,0 +1,9 @@
+Duplicate Criteria Definition
+
+To ensure data integrity, we defined strict criteria for identifying duplicate records. 
+A record is considered a duplicate if its Primary Key (Surrogate Key) appears multiple times in the dataset, indicating an ingestion error (e.g., the same file loaded twice).
+
+Sales Key - The SalesKey is the unique identifier for every transaction line item. If the same SalesKey exists > 1 time, it is a system duplicate.
+OnlineSalesKey - The OnlineSalesKey uniquely identifies an online order line. Any repetition of this key is invalid.
+ProductKey - Each product must have a unique ID. Duplicates here would cause a "Many-to-Many" explosion in joins.
+CustomerKey - Each customer profile must be unique. Duplicate keys would inflate customer counts.
